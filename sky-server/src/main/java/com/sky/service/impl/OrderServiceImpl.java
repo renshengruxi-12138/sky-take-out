@@ -2,19 +2,23 @@ package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.AddressBook;
 import com.sky.entity.OrderDetail;
 import com.sky.entity.Orders;
 import com.sky.entity.ShoppingCart;
 import com.sky.exception.AddressBookBusinessException;
+import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.AddressBookMapper;
 import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.ShoppingCartMapper;
 import com.sky.service.OrderService;
+import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -95,5 +100,38 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         return orderSubmitVO;
+    }
+
+    /**
+     * 订单支付（模拟支付）
+     * @param ordersPaymentDTO
+     * @return
+     */
+    public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) {
+        log.info("模拟支付开始，订单号：{}", ordersPaymentDTO.getOrderNumber());
+
+        // 根据订单号查询订单
+        Orders orders = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        // 直接标记为已支付
+        orders.setPayStatus(Orders.PAID);
+        orders.setStatus(Orders.TO_BE_CONFIRMED);
+        orders.setCheckoutTime(LocalDateTime.now());
+        orders.setPayMethod(ordersPaymentDTO.getPayMethod());
+        orderMapper.update(orders);
+
+        log.info("模拟支付完成，订单号：{} 已标记为已支付", ordersPaymentDTO.getOrderNumber());
+
+        // 返回模拟的支付数据
+        return OrderPaymentVO.builder()
+                .nonceStr("mock_nonce_str")
+                .paySign("mock_pay_sign")
+                .timeStamp(String.valueOf(System.currentTimeMillis() / 1000))
+                .signType("RSA")
+                .packageStr("prepay_id=mock_prepay_id")
+                .build();
     }
 }

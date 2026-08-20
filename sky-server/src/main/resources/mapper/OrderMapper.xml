@@ -13,4 +13,25 @@
              #{remark}, #{phone}, #{address},  #{consignee}, #{estimatedDeliveryTime},
              #{deliveryStatus},  #{packAmount}, #{tablewareNumber}, #{tablewareStatus})
     </insert>
+
+    <select id="getByNumber" resultType="Orders">
+        select * from orders where number = #{number}
+    </select>
+
+    <update id="update" parameterType="Orders">
+        update orders
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="payStatus != null">pay_status = #{payStatus},</if>
+            <if test="payMethod != null">pay_method = #{payMethod},</if>
+            <if test="checkoutTime != null">checkout_time = #{checkoutTime},</if>
+            <if test="cancelReason != null">cancel_reason = #{cancelReason},</if>
+            <if test="cancelTime != null">cancel_time = #{cancelTime},</if>
+            <if test="rejectionReason != null">rejection_reason = #{rejectionReason},</if>
+            <if test="deliveryTime != null">delivery_time = #{deliveryTime},</if>
+            <if test="estimatedDeliveryTime != null">estimated_delivery_time = #{estimatedDeliveryTime},</if>
+            <if test="deliveryStatus != null">delivery_status = #{deliveryStatus},</if>
+        </set>
+        where id = #{id}
+    </update>
 </mapper>
