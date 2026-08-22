@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
@@ -23,6 +24,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,6 +51,8 @@ public class OrderServiceImpl implements OrderService {
     private AddressBookMapper addressBookMapper;
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
+    @Autowired
+    private WebSocketServer webSocketServer;
     /**
      * 用户下单
      * @param ordersSubmitDTO
@@ -133,6 +139,13 @@ public class OrderServiceImpl implements OrderService {
         orders.setCheckoutTime(LocalDateTime.now());
         orders.setPayMethod(ordersPaymentDTO.getPayMethod());
         orderMapper.update(orders);
+        //通过Websocket向客户端浏览器推送消息
+        Map map = new HashMap();
+        map.put("type", 1);
+        map.put("orderId", orders.getId());
+        map.put("content","订单号：" + ordersPaymentDTO.getOrderNumber());
+        String jsonString = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(jsonString);
 
         log.info("模拟支付完成，订单号：{} 已标记为已支付", ordersPaymentDTO.getOrderNumber());
 
