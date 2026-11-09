@@ -44,7 +44,7 @@ public class DishController {
         dishService.saveWithFlavor(dishDTO);
 
         //清理缓存数据
-        String key = "dish_" + dishDTO.getId();
+        String key = "dish_" + dishDTO.getCategoryId();
         cleanCache(key);
         return Result.success();
     }
