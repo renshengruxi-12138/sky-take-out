@@ -503,7 +503,7 @@ public class OrderServiceImpl implements OrderService {
 
         Map map = new HashMap();
         map.put("type",2);
-        map.put("id",id);
+        map.put("orderId",id);
         map.put("content","订单号：" + ordersDB.getNumber());
         webSocketServer.sendToAllClient(JSON.toJSONString(map));
     }
